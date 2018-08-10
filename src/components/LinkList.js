@@ -3,9 +3,10 @@ import Link from './Link'
 import { Query } from 'react-apollo'
 import gql from 'graphql-tag'
 
+
 // First, you create the JavaScript constant called FEED_QUERY that stores the query. The gql function is used to parse the plain string that contains the GraphQL code (if you’re unfamililar with the backtick-syntax, you can read up on JavaScript’s tagged template literals).
 
-const FEED_QUERY = gql`
+export const FEED_QUERY = gql`
   {
     feed {
       links {
@@ -13,10 +14,22 @@ const FEED_QUERY = gql`
         createdAt
         url
         description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
       }
     }
   }
 `
+
+
 
 // Let’s walk through what’s happening in this code. As expected, Apollo injected several props into the component’s render prop function. These props themselves provide information about the state of the network request:
 class LinkList extends Component {
@@ -34,9 +47,16 @@ class LinkList extends Component {
 
                     return (
                         <div>
-                            {linksToRender.map(link => <Link key={link.id} link={link} />)}
+                          {linksToRender.map((link, index) => (
+                            <Link
+                            key={link.id}
+                            link={link}
+                            index={index}
+                            updateStoreAfterVote={this._updateCacheAfterVote}
+                          />
+                          ))}
                         </div>
-                    )
+                      )
                 }}
             </Query>
         )

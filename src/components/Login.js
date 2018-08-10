@@ -55,11 +55,14 @@ class Login extends Component {
           />
         </div>
         <div className="flex mt3">
-          <div className="flex mt3">
             <Mutation
               mutation={login ? LOGIN_MUTATION : SIGNUP_MUTATION}
               variables={{ email, password, name }}
-              onCompleted={data => this._confirm(data)}
+              onCompleted={data => this._confirm = async data => {
+                const { token } = this.state.login ? data.login : data.signup
+                this._saveUserData(token)
+                this.props.history.push(`/`)
+              }}
             >
               {mutation => (
                 <div className="pointer mr2 button" onClick={mutation}>
@@ -74,17 +77,11 @@ class Login extends Component {
               {login ? 'need to create an account?' : 'already have an account?'}
             </div>
           </div>
-
-        </div>
       </div>
     )
   }
 
-  _confirm = async data => {
-    const { token } = this.state.login ? data.login : data.signup
-    this._saveUserData(token)
-    this.props.history.push(`/`)
-  }
+
 
   _saveUserData = token => {
     localStorage.setItem(AUTH_TOKEN, token)
