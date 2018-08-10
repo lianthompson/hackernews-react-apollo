@@ -3,6 +3,7 @@ import { AUTH_TOKEN } from '../constants'
 import { timeDifferenceForDate } from '../utils'
 import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
+import { FEED_QUERY } from './LinkList'
 
 const VOTE_MUTATION = gql`
   mutation VoteMutation($linkId: ID!) {
@@ -24,6 +25,16 @@ const VOTE_MUTATION = gql`
 `
 
 class Link extends Component {
+
+  _updateCacheAfterVote = (store, createVote, linkId) => {
+    const data = store.readQuery({ query: FEED_QUERY })
+  
+    const votedLink = data.feed.links.find(link => link.id === linkId)
+    votedLink.votes = createVote.link.votes
+  
+    store.writeQuery({ query: FEED_QUERY, data })
+  }
+
   render() {
     const authToken = localStorage.getItem(AUTH_TOKEN)
     return (
