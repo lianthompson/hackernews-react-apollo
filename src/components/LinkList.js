@@ -28,18 +28,20 @@ export const FEED_QUERY = gql`
     }
   }
 `
-let _updateCacheAfterVote = (store, createVote, linkId) => {
-    const data = store.readQuery({ query: FEED_QUERY })
-  
-    const votedLink = data.feed.links.find(link => link.id === linkId)
-    votedLink.votes = createVote.link.votes
-  
-    store.writeQuery({ query: FEED_QUERY, data })
-  }
 
 
 // Let’s walk through what’s happening in this code. As expected, Apollo injected several props into the component’s render prop function. These props themselves provide information about the state of the network request:
 class LinkList extends Component {
+
+    _updateCacheAfterVote = (store, createVote, linkId) => {
+        const data = store.readQuery({ query: FEED_QUERY })
+      
+        const votedLink = data.feed.links.find(link => link.id === linkId)
+        votedLink.votes = createVote.link.votes
+      
+        store.writeQuery({ query: FEED_QUERY, data })
+      }
+
     render() {
         return (
             <Query query={FEED_QUERY}>
