@@ -5,6 +5,7 @@ import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { FEED_QUERY } from './LinkList'
 
+
 const VOTE_MUTATION = gql`
   mutation VoteMutation($linkId: ID!) {
     vote(linkId: $linkId) {
@@ -34,47 +35,42 @@ class Link extends Component {
   
     store.writeQuery({ query: FEED_QUERY, data })
   }
-
+  
   render() {
+    const authToken = localStorage.getItem(AUTH_TOKEN)
     return (
-      <Query query={FEED_QUERY} variables={this._getQueryVariables()}>
-        {({ loading, error, data, subscribeToMore }) => {
-          if (loading) return <div>Fetching</div>
-          if (error) return <div>Error</div>
-  
-          this._subscribeToNewLinks(subscribeToMore)
-          this._subscribeToNewVotes(subscribeToMore)
-  
-          const linksToRender = this._getLinksToRender(data)
-          const isNewPage = this.props.location.pathname.includes('new')
-          const pageIndex = this.props.match.params.page
-            ? (this.props.match.params.page - 1) * LINKS_PER_PAGE
-            : 0
-  
-          return (
-            <Fragment>
-              {linksToRender.map((link, index) => (
-                <Link
-                  key={link.id}
-                  link={link}
-                  index={index + pageIndex}
-                  updateStoreAfterVote={this._updateCacheAfterVote}
-                />
-              ))}
-              {isNewPage && (
-                <div className="flex ml4 mv3 gray">
-                  <div className="pointer mr2" onClick={this._previousPage}>
-                    Previous
-                  </div>
-                  <div className="pointer" onClick={() => this._nextPage(data)}>
-                    Next
-                  </div>
+      <div className="flex mt2 items-start">
+      <div className="flex items-center">
+        <span className="gray">{this.props.index + 1}.</span>
+        {authToken && (
+            <Mutation
+              mutation={VOTE_MUTATION}
+              variables={{ linkId: this.props.link.id }}
+              update={(store, { data: { vote } }) =>
+                this.props.updateStoreAfterVote(store, vote, this.props.link.id)
+              }
+            >
+              {voteMutation => (
+                <div className="ml1 gray f11" onClick={voteMutation}>
+                  ▲
                 </div>
               )}
-            </Fragment>
-          )
-        }}
-      </Query>
+            </Mutation>
+          )}
+      </div>
+        <div className="ml1">
+          <div>
+            {this.props.link.description} ({this.props.link.url})
+          </div>
+          <div className="f6 lh-copy gray">
+            {this.props.link.votes.length} votes | by{' '}
+            {this.props.link.postedBy
+              ? this.props.link.postedBy.name
+              : 'Unknown'}{' '}
+            {timeDifferenceForDate(this.props.link.createdAt)}
+          </div>
+        </div>
+      </div>
     )
   }
 }
