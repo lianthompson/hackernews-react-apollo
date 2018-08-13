@@ -42,14 +42,20 @@ class LinkList extends Component {
         store.writeQuery({ query: FEED_QUERY, data })
       }
 
+    _subscribeToNewLinks = async () => {
+        // implement soon
+    }
+
     render() {
         return (
             <Query query={FEED_QUERY}>
-                {({ loading, error, data }) => {
+                {({ loading, error, data, subscribeToMore }) => {
                     // loading: Is true as long as the request is still ongoing and the response hasn’t been received.
                     if (loading) return <div>Fetching</div>
                     // error: In case the request fails, this field will contain information about what exactly went wrong.
                     if (error) return <div>Error</div>
+
+                    this._subscribeToNewLinks(subscribeToMore)
 
                     // data: This is the actual data that was received from the server. It has the links property which represents a list of Link elements.
                     const linksToRender = data.feed.links
