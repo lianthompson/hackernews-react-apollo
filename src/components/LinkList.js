@@ -57,6 +57,8 @@ const NEW_LINKS_SUBSCRIPTION = gql`
 
 // First, you create the JavaScript constant called FEED_QUERY that stores the query. The gql function is used to parse the plain string that contains the GraphQL code (if you’re unfamililar with the backtick-syntax, you can read up on JavaScript’s tagged template literals).
 
+// The query now accepts arguments that we’ll use to implement pagination and ordering. skip defines the offset where the query will start. If you passed a value of e.g. 10 for this argument, it means that the first 10 items of the list will not be included in the response. first then defines the limit, or how many elements, you want to load from that list. Say, you’re passing the 10 for skip and 5 for first, you’ll receive items 10 to 15 from the list. orderBy defines how the returned list should be sorted.
+
 export const FEED_QUERY = gql`
   query FeedQuery($first: Int, $skip: Int, $orderBy: LinkOrderByInput) {
     feed(first: $first, skip: $skip, orderBy: $orderBy) {
@@ -84,6 +86,16 @@ export const FEED_QUERY = gql`
 
 // Let’s walk through what’s happening in this code. As expected, Apollo injected several props into the component’s render prop function. These props themselves provide information about the state of the network request:
 class LinkList extends Component {
+
+    _getQueryVariables = () => {
+        const isNewPage = this.props.location.pathname.includes('new')
+        const page = parseInt(this.props.match.params.page, 10)
+      
+        const skip = isNewPage ? (page - 1) * LINKS_PER_PAGE : 0
+        const first = isNewPage ? LINKS_PER_PAGE : 100
+        const orderBy = isNewPage ? 'createdAt_DESC' : null
+        return { first, skip, orderBy }
+      }
 
     _subscribeToNewVotes = subscribeToMore => {
         subscribeToMore({
@@ -124,7 +136,7 @@ class LinkList extends Component {
 
     render() {
         return (
-            <Query query={FEED_QUERY}>
+            <Query query={FEED_QUERY} variables={this._getQueryVariables()}>
                 {({ loading, error, data, subscribeToMore }) => {
                     // loading: Is true as long as the request is still ongoing and the response hasn’t been received.
                     if (loading) return <div>Fetching</div>
